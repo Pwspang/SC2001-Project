@@ -65,18 +65,20 @@ template<typename T> ostream& operator<<(ostream &s,vector<T> t){F(i,0,SZ(t))s<<
 
  
 vi v;
-ll n_comp=0;
+ull n_comp=0;
 
 
-bool comp(int a, int b){
+int comp(int a, int b){
 	n_comp++;
-	return b < a;
+	if (a < b) return -1;
+	else if (a > b) return 1;
+	else return 0;
 }
 
 void insertionSort(int l, int r){
 	FE(i,l+1,r){
 		for (int j=i; j > l; j--){
-			if (comp(j, j-1)) swap(v[j], v[j-1]);
+			if (comp(j, j-1)==1) swap(v[j], v[j-1]);
 			else break;
 		}
 	}	
@@ -84,12 +86,30 @@ void insertionSort(int l, int r){
 
 void mergeSort(int l, int r, int s){
 	// ending 
-	if (r-l <= s) insertionSort(l,r);
+	if (r-l+1 <= s) insertionSort(l,r);
 	else {
 		int m=l+r/2;
 		mergeSort(l,m,s);
 		mergeSort(m+1,r,s);
-		// Do inplace merging ?
+		// Do inplace merging
+		int a=l, b = m+1, i, cmp, tmp;
+		while (a <= m && b <= r){
+			cmp = comp(v[a], v[b]);
+			if (cmp > 0){
+				tmp = v[b++];
+				for (i=++m; i > a; i--)
+					v[i] = v[i-1];
+				v[a++] = tmp;
+			} else if (cmp < 0){
+				a++;
+			} else {
+				if (a==m && b==r) break;
+				tmp = v[b++];
+				a++;
+				for(i=++m; i > a; i--) v[i] = v[i-1];
+				v[a++] = tmp;
+			}
+		}
 
 	}
 }
@@ -98,17 +118,18 @@ void mergeSort(int l, int r, int s){
 
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
-	int n;
+	int n,s;
 	
 	// cout << "Enter size: ";
 	cin >> n;
 	v.resize(n);
 	F(i,0,n) cin >> v[i];
 
-	insertionSort(0, n-1);
+	cin >> s;
 
-	DBG(n_comp);
-	printV(v);
+	mergeSort(0, n-1, s);
+
+	cout << n_comp;
 
 
 
