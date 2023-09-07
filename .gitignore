@@ -1,3 +1,5 @@
-Lab1.cpp\:tests
 Lab1
+Lab1.cpp/tests
+.ipynb_checkpoints/
+*.exe
 
