@@ -1,9 +1,8 @@
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <stdio.h>
-
+#include <bits/stdc++.h>
+#include "headers/benchmark.hpp"
 using namespace std;
+using namespace bm;
+
 #define bit(x,i) (x&(1<<i))  //select the bit of position i of x
 #define lowbit(x) ((x)&((x)^((x)-1))) //get the lowest bit of x
 #define hBit(msb,n) asm("bsrl %1,%0" : "=r"(msb) : "r"(n)) //get the highest bit of x, maybe the fastest
@@ -66,92 +65,270 @@ const int fxx[8][2] = {{0,1}, {0,-1}, {1,0}, {-1,0}, {1,1}, {1,-1}, {-1,1}, {-1,
 template<typename T,typename TT> ostream& operator<<(ostream &s,pair<T,TT> t) {return s<<"("<<t.first<<","<<t.second<<")";}
 template<typename T> ostream& operator<<(ostream &s,vector<T> t){F(i,0,SZ(t))s<<t[i]<<" ";return s; }
 
+/*
 
-vi v;
-ull n_comp=0;
-ll i_comp=0, m_comp=0;
+Helper Functions
 
-int comp(int a, int b, int c){
-	if (c) i_comp++;
-	else m_comp++;
-	n_comp++;
-	if (a < b) return -1;
-	else if (a > b) return 1;
-	else return 0;
-}
+Preset seed in main function will cause all thread to generate the same vector array.
 
-void insertionSort(int l, int r){
-	FE(i,l+1,r){
-		for (int j=i; j > l; j--){
-			if (comp(v[j-1], v[j],1)==1) swap(v[j], v[j-1]);
-			else break;
-		}
-	}
-}
-
-void mergeSort(int l, int r, int s){
-	// ending
-	if(r-l <= 0) return;
-	if (r-l+1 <= s) insertionSort(l,r);
-	else {
-		int m=(l+r)/2;
-		mergeSort(l,m,s);
-		mergeSort(m+1,r,s);
-		// Do inplace merging
-		int a=l, b = m+1, i, cmp, tmp;
-		while (a <= m && b <= r){
-			cmp = comp(v[a], v[b],0);
-			if (cmp > 0){
-				tmp = v[b++];
-				for (i=++m; i > a; i--)
-					v[i] = v[i-1];
-				v[a++] = tmp;
-			} else if (cmp < 0){
-				a++;
-			} else {
-				if (a==m && b==r) break;
-				tmp = v[b++];
-				a++;
-				for(i=++m; i > a; i--) v[i] = v[i-1];
-				v[a++] = tmp;
-			}
-		}
-
-	}
-}
+*/
 
 int rand_num(){
 	return rand()%10000+1;
 }
 
-void s_comp(int n){
-	FILE * pFile = fopen ("sn_comp.txt" , "w");
-	FE(s,1,100){
-		generate(v.begin(), v.end(), rand_num);
-		// printV(v);
-		mergeSort(0, n-1, s);
-		fprintf(pFile, "%d %llu\n", s, n_comp);
-		cout << s << " " << n_comp << " " << i_comp << " " << m_comp << endl;
-		// printV(v);
-		n_comp=0;
-		i_comp=0;
-		m_comp=0;
+/*
+
+Hybrid Sort class 
+
+If s=1: Merge Sort
+
+If n=s: Insertion Sort
+
+Else: Hybrid Sort
+
+*/
+
+class HybridSort{
+public:
+	ull n_comp=0;
+	vi v;
+
+	void operator()(int n, int s, vector<ull> & ans, int pos){
+		srand(1000);
+		generate_vector(n);
+		mergeSort(0,n-1,s);
+		ans[pos]=n_comp;
 	}
-	
-	fclose(pFile);
+
+	int comp(int a, int b){
+		n_comp++;
+		if (a < b) return 1;
+		else if (a > b) return -1;
+		else return 0;
+	}
+
+	void generate_vector(int n){
+		v.resize(n);
+		generate(v.begin(), v.end(), rand_num);
+	}
+
+	void insertionSort(int l, int r){
+		FE(i,l+1,r){
+			for (int j=i; j > l; j--){
+				if (comp(v[j-1], v[j])==-1) swap(v[j], v[j-1]);
+				else break;	
+			}
+		}
+	}
+
+	void mergeSort(int l, int r, int s){
+		if (l==r) return;
+		if (r-l+1 <= s) insertionSort(l,r);
+		else {
+			int m=(l+r)/2;
+			mergeSort(l,m,s);
+			mergeSort(m+1,r,s);
+			//inplace merge 
+			int a=l, b=m+1, i, cmp, tmp;
+			while (a <= m && b <= r){
+				cmp = comp(v[a], v[b]);
+				if (cmp > 0){
+					a++;
+				} else if (cmp < 0){
+					tmp = v[b++];
+					for (i=++m; i > a; i--) v[i] = v[i-1];
+					v[a++] = tmp;
+				} else {
+					if (a==m && b==r) break;
+					tmp = v[b++];
+					a++;
+					for(i=++m; i > a; i--) v[i] = v[i-1];
+					v[a++] = tmp;
+				}
+			}
+		}
+	}
+
+};
+
+
+
+
+/*
+
+Part i
+
+Fixed S = 16
+
+Variable N to measure the time complexity 
+
+Goal understand: The time complexity of the hybridsort algorithm
+
+To Do:
+
+1) Plot n vs comparison, O(n^2), O(nlogn)
+2) Curve should lie within O(nlogn) and O(n^2)
+
+
+
+*/
+
+void part_1(){
+	vector<thread> vt;
+	vector<ull> ans(9);
+	int arr[] = {100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000};
+
+	//using multithreading to speed up runtime
+	ofstream file;
+	file.open("part1.csv");	
+
+	cout << "n,n_comparison" << endl;
+	file << "n,n_comparison" << endl;
+
+	F(i,0,9){
+		vt.pb(thread(HybridSort(), arr[i], 16, ref(ans), i));
+	}
+
+	F(i,0,9){
+		vt[i].join();
+		cout << arr[i] << "," << ans[i] << endl;
+		file << arr[i] << "," << ans[i] << endl;
+	}
+
+	file.close();
+
 }
+
+
+
+/*
+
+Part ii
+
+Fixed n = 100000
+
+Goal: To understand how number of comparisons increases with respect to S
+
+*Important note: Try to explain the sharp jump in key comparisons 
+
+To Do: 
+
+From the data identify S "shape" key comparisons increased
+
+12 -> 24 -> 48 -> 96 
+
+Can see that every x2 will have aa sharp increase in number of key comparisons
+
+Explaination: Try to link back to time complexity log2(n/k)
+
+Using "benchmark.hpp" libary only measures the CPU burst time 
+
+*/
+
+void part_2(){
+	ofstream file;
+	file.open("part2.csv");	
+
+	cout << "s,n_comparison,cpu_burst(ns)" << endl;
+	file  << "s,n_comparison,cpu_burst(ns)" << endl;
+
+	vector<ull> ans(101);
+
+	for (int i=1; i <=81; i+=20){
+		F(j,i,i+20) {
+			auto ns = Bench::mark(HybridSort(), 100000, j, ref(ans), j);
+			cout << j << "," << ans[j] << "," << ns.as_nanoseconds() << endl;
+			file << j << "," << ans[j] << "," << ns.as_nanoseconds() << endl;
+		}
+	}
+	file.close();
+}
+
+/*
+
+Part iii
+
+Varying input of dataasets 
+
+Goal: Determine an optimal value of S for the best performance of the hybrid algorithm 
+
+How to do it? 
+- To find a point where insertion(CPU burst time) = merge(CPU burst time)
+- Since insertion sort more efficient than merge sort on smaller array size
+- Why not look at key_comparisons only? merge_sort -> recursive call -> OS need to create a stack for subsequent functions -> potentially more time needed 
+- Therefore, we look at both key comparisons and cpu burst time to determine the optimal value of s
+** Important for mergeSort optimality we choose multiples of 2 for S
+
+*Same array will be generated since the srand seed is the same 
+
+*We Chose S=16 
+
+*/
+
+void part_3(){
+	ofstream file;
+	file.open("part3.csv");
+	vector<ull> ans_ins(101),ans_merge(101);
+
+	cout << "n,n_comparison_insertion,cpu_burst_insertion(ns),n_comparison_merge,cpu_burst_merge(ns)" << endl;
+	file << "n,n_comparison_insertion,cpu_burst_insertion(ns),n_comparison_merge,cpu_burst_merge(ns)" << endl;
+
+	FE(n, 1, 100){
+		cout << n << ",";
+		file << n << ",";
+
+		auto ns = Bench::mark(HybridSort(), n, n, ref(ans_ins), n);
+		cout << ans_ins[n] << "," << ns.as_nanoseconds() << ",";
+		file << ans_ins[n] << "," << ns.as_nanoseconds() << ",";
+
+		ns = Bench::mark(HybridSort(), n, 1, ref(ans_merge), n);
+		cout << ans_merge[n] << "," << ns.as_nanoseconds() << endl;
+		file << ans_merge[n] << "," << ns.as_nanoseconds() << endl;
+		
+	}
+
+
+	file.close();
+}
+
+/*
+
+Part D: Compare with original Mergesort 
+
+Compare S=1 with S=16
+
+
+*/
+
+void part_d(){
+	vector<ull> ans(2);
+
+	cout << "n_comparison, cpu_burst(s)" << endl;
+
+	auto ns = Bench::mark(HybridSort(), 10000000, 1, ref(ans), 0);
+	cout << ans[0] << "," << ns.as_seconds() << endl;
+
+	ns = Bench::mark(HybridSort(), 10000000, 16, ref(ans), 1);
+	cout << ans[1] << "," << ns.as_seconds() << endl;
+
+}
+
+
+
 
 
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
-	int n;
-
-	cout << "Enter size: ";
-	cin >> n;
-	v.resize(n);
 	// srand(unsigned(std::time(nullptr)));
 
-	s_comp(n);
+
+
+	// part_1();
+	// part_2();
+	// part_3();
+	// part_d();
+
 	
 	return 0;
 
