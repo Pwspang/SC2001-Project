@@ -2,3 +2,7 @@ Lab1
 .ipynb_checkpoints/
 *.exe
 Lab1.cpp__tests
+code.cpp\:tests
+code
+**/.idea/workspace.xml 
+**/.idea/tasks.xml

@@ -13,5 +13,9 @@
 
 ## Lab 2 
 
+(a) [Algorithm implementation]
+
+
+
 
 ## Lab 3 
