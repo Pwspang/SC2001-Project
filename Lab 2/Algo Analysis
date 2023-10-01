@@ -12,13 +12,14 @@ Therefore,  |V|-1 <= |E| <= |V| * (|V|-1) /2
 
 Testcase Set 1 
 
-Goal: How algorithm time complexity changes wrt |V|
+Goal: How algorithm time complexity changes wrt |V|, |E| should be a constant
 
-From V=1 to V=1000. Keep |E| = |V|-1 (To ensure that the graph is connected). 
+From V=200 to V=1000. Keep |E| >= |V|-1 (To ensure that the graph is connected). 
+|E| = 5000
 
 For ADJ Matrix, (Expect it to increase at a rate of 2*V^2 -> O(V^2))
 
-For ADJ List, (Expect it to increase at a rate of V + (V-1)Log V -> O(V))
+For ADJ List, (Expect it to increase at a rate of V + 10000Log V -> O(V))
 
 Testcase Set 2
 
@@ -33,4 +34,12 @@ For ADJ Matrix, (Expect the time complexity to be constant)
 
 For ADJ List, (Expect the time complexity to increase at a rate of E)
 
-Task C: Compare implementations 8 7
+Task C: Compare implementations (My guess from time complexity analysis, )
+https://textbooks.cs.ksu.edu/cc315/iii-graphs/7-graphs-list-representation/3-dense-vs-sparse/
+I think the answer is sparse graph vs dense graph. Sub |E| = |V| * (|V|-1) / 2
+
+O(|V|^2 log |V|) vs O(|V|^2) 
+
+Dense graph -> ADJ Matrix Better
+
+Sparse Graph -> ADJ List better

@@ -52,87 +52,107 @@ Helper Functions
 
 */
 
-// struct Heap{
-// 	//creating a min head instead of max heap
-// 	vector<ii> heap;
-// 	int size;
+struct Heap{
+	//creating a min head instead of max heap
+	vector<ii> heap;
+	int size;
 
-// 	Heap(vector<ii> v){
-// 		size = v.size();
-// 		heap = v;
-// 		heapifying(0);
-// 	}
+	Heap(vector<ii> & v){
+		size = v.size();
+		heap.resize(size*2);
+		F(i,0,size) {
+			heap[i] = v[i];
+		}
+		heapifying(0);
+	}
 
-// 	void heapifying(int i){
-// 		//if not leaf
-// 		if (2*i+1 <= size){
-// 			heapifying(2*i+1);
-// 			heapifying(2*i+2);
-// 			ii k = heap[i];
-// 			fixHeap(i, k);
-// 		}
-// 	}
+	// Heap Constructors
+	void heapifying(int i){
+		//if not leaf
+		if (2*i+1 <= size-1){
+			heapifying(2*i+1);
+			heapifying(2*i+2);
+			fixHeap(i, heap[i]);
+		}
+	}
 
-// 	void fixHeap(int i, ii k){
-// 		//check if leaf
-// 		if (2*i+1 > size){
-// 			heap[i] = k;
-// 		} else {
-// 			//Check if right child exists
-// 			int smaller=2*i+1;
-// 			if (2*i+2 <= size) {
-// 				smaller = heap[2*i+1].fi < heap[2*i+2] ? 2*i+1 : 2*i+2; 
-// 			} 
+	void fixHeap(int i, ii k){
+		//check if leaf
+		if (2*i+1 > size-1){
+			heap[i] = k;
+		} else {
+			//Check if right child exists
+			int smaller=2*i+1;
+			if (2*i+2 <= size-1) {
+				smaller = heap[2*i+1].fi < heap[2*i+2].fi ? 2*i+1 : 2*i+2; 
+			} 
 
-// 			if (k.fi < heap[smaller].fi){
-// 				heap[i] = k;
-// 			} else {
-// 				heap[i] = heap[smaller];
-// 				fixHeap(smaller, k);
-// 			}
+			if (k.fi < heap[smaller].fi){
+				heap[i] = k;
+			} else {
+				swap(heap[i], heap[smaller]);
+				fixHeap(smaller, k);
+			}
 			
-// 		}
-// 	}
+		}
+	}
 
-// 	ii extractMin(){
-// 		ii tmp = heap[0];
-// 		heap[0] = heap[size-1];
-// 		size--;
-// 		fixHeap(0, heap[0]);
-// 		return tmp;
-// 	}
+	ii extractMin(){
+		swap(heap[0], heap[size-1]);
+		size--;
+		heapifying(0);
+		return heap[size];
+	}
 
-// 	void fixUp(int pos){
-// 		//iterative fixUp
-// 		while (pos != 0){
-// 			int parent = (pos-1)/2;
-// 			if (heap[parent].fi < heap[pos].fi) return;
-// 			//swap 
-// 			ii tmp = heap[parent];
-// 			heap[parent] = heap[pos];
-// 			heap[pos]=tmp;
-// 			pos = parent;
-// 		}
+	void fixUp(int pos){
+		//iterative fixUp
+		while (pos != 0){
+			int parent = (pos-1)/2;
+			if (heap[parent].fi < heap[pos].fi) return;
+			//swap 
+			swap(heap[pos], heap[parent]);
+			pos = parent;
+		}
 
-// 	}
+	}
+
  
 
-// 	ii insertPair(ii k){
-// 		int pos=size;
-// 		size++;
-// 		heap[pos]=k;
-// 		fixUp(pos);
-// 	}
+	void insertNode(ii k){
+		heap[size]=k;
+		size++;
+		fixUp(size-1);
+	}
 
-// 	ii extractPair(int node){
+	void deleteNode(int vertex){
+		//Find Vertex, using O(n) ensure that the node is inside the heap
 
-// 	}
+		int index=-1;
+		F(i,0,size){
+			if (heap[i].se == vertex){
+				index = i;
+				break;
+			}
+		}
+		//Same idea as extractMin 
+		if (index == size-1) size--;
+		else {
+			swap(heap[index], heap[size-1]);
+			size--;
+			heapifying(index);
+		}
+	}
 
-// 	bool isEmpty(){
-// 		return size==0;
-// 	}
+	bool empty(){
+		return size==0;
+	}
 
-// }
+	void print_heap(){
+		F(i,0,size) cout << heap[i] << " ";
+		cout << endl;
+	}
+
+};
 
 
 /*
@@ -167,16 +187,6 @@ struct GraphMatrix{
 		}
 	}
 
-	// int smallest_node(vi & d, vi & s){
-	// 	int tmp = INF, node = -1;
-	// 	F(i,0,size)	{
-	// 		if (d[i] < tmp && s[i] == 0){
-	// 			tmp = d[i];
-	// 			node = i;
-	// 		}
-	// 	}
-	// 	return node;
-	// }
 	ii smallest_node(vector<ii> & pq, vi & s){
 		//returns (-1,-1) if the queue is empty
 		//Distance is -1 if item is not in the array
@@ -259,38 +269,42 @@ struct GraphAdj{
 		}
 	}
 
-	// To do [Delete/edit weight for priority queue]
 	vi djikstra(int source){
 		// Time complexity should be O(V + E Log V)
 		int u;
 		vi d, pi, s;
-		priority_queue<ii, vector<ii>, greater<ii>> pq;
+		// priority_queue<ii, vector<ii>, greater<ii>> pq;
+
 		d.assign(size, INF);
 		pi.assign(size, -1);
 		s.assign(size, 0);
 
 		d[source] = 0;
-		pq.push(mp(0, source));
+		//pq.push(mp(0, source));
+		// Creating initial Heap
+		vector<ii> tmp;
+		F(i,0,size) tmp.pb(mp(d[i], i));
+		Heap pq = Heap(tmp);
 
 		// Outer Loop O(V)
 		while (!pq.empty()){
-			ii node = pq.top();
-			pq.pop();
+			ii node = pq.extractMin();
 			s[node.se] = 1;
 			// O(E/V) to loop through the edges
-			for (ii con: adj[node.se]){
-				if (s[con.se] == 0 && d[con.se] > d[node.se] + con.fi){
-					pq.push(mp(d[node.se] + con.fi, con.se));
-					d[con.se] = d[node.se] + con.fi;
+			for (auto con: adj[node.se]){
+				if (s[con.se] == 0 && (d[con.se] > node.fi + con.fi)){
+					pq.deleteNode(con.se);
+					d[con.se] = node.fi + con.fi;
 					pi[con.se] = node.se;
+					pq.insertNode(mp(d[con.se], con.se));
 				}
 			}
 			
 		}
-		
 		return d;
 		 	
 	} 
+
 
 	void print_graph(){
 		cout << "Vertex: (Distance, Vertex)" << endl;
@@ -317,7 +331,7 @@ void gm_tc1(){
 	outfile.open("gm_tc1.csv");
 	myfile.open("testcase1.txt");
 	outfile << "|V|,Time_elapsed(ns)" << endl;
-	FE(i,1,1000){
+	FE(i,200,1000){
 		GraphMatrix g = GraphMatrix(myfile);
 		auto result = Bench::mark(mem_fn(&GraphMatrix::djikstra), &g, 0);
 		outfile << i << "," << result.fi.as_nanoseconds() << endl;
@@ -348,7 +362,7 @@ void ga_tc1(){
 	outfile.open("ga_tc1.csv");
 	myfile.open("testcase1.txt");
 	outfile << "|V|,Time_elapsed(ns)" << endl;
-	FE(i,1,1000){
+	FE(i,200,1000){
 		GraphAdj g = GraphAdj(myfile);
 		auto result = Bench::mark(mem_fn(&GraphAdj::djikstra), &g, 0);
 		outfile << i << "," << result.fi.as_nanoseconds() << endl;
@@ -378,8 +392,14 @@ void ga_tc2(){
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
 
+	gm_tc1();
+	//gm_tc2();
+	ga_tc1();
 	//ga_tc2();
 
+
+
+		
 	return 0;
 
 }
