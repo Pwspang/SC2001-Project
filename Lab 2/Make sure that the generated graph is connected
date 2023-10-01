@@ -1,0 +1,36 @@
+Assumptions for analysis
+
+1) Make sure that the generated graph is connected -> There is a minimum path to any point. Eqn must hold, (|E| >= |V|-1)
+2) Graph is undirected (|E| <= |V| * (|V|-1)) /2 
+
+Therefore,  |V|-1 <= |E| <= |V| * (|V|-1) /2
+
+
+// Using https://github.com/ifsmirnov/jngen to generate graph [Generating Algo ensure that graph is connected]
+// Benchmark library https://github.com/dtrugman/Benchmark/tree/master
+
+
+Testcase Set 1 
+
+Goal: How algorithm time complexity changes wrt |V|
+
+From V=1 to V=1000. Keep |E| = |V|-1 (To ensure that the graph is connected). 
+
+For ADJ Matrix, (Expect it to increase at a rate of 2*V^2 -> O(V^2))
+
+For ADJ List, (Expect it to increase at a rate of V + (V-1)Log V -> O(V))
+
+Testcase Set 2
+
+Goal: How algorithm time complexity changes wrt |E|.
+
+
+Keep V constant (|V|=100), change E, |V|-1 <= |E| <= |V| * (|V|-1) /2
+
+|E| from 99 to 4950
+
+For ADJ Matrix, (Expect the time complexity to be constant)
+
+For ADJ List, (Expect the time complexity to increase at a rate of E)
+
+Task C: Compare implementations 8 7

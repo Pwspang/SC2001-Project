@@ -9,9 +9,9 @@
 [random.randint(1, 10000) for i in range(size)]
 `
 
-(c) Analysis in [jupyter notebook](https://github.com/Pwspang/SC2001-Project/blob/main/Lab%201/project1.ipynb)
-
 ## Lab 2 
+
+Testcase 2 file too big for github. 
 
 (a) [Algorithm implementation]
 

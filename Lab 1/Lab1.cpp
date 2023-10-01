@@ -327,7 +327,7 @@ int32_t main(){
 	// part_1();
 	// part_2();
 	// part_3();
-	// part_d();
+	part_d();
 
 	
 	return 0;
