@@ -378,7 +378,7 @@ void ga_tc2(){
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
 
-	ga_tc2();
+	//ga_tc2();
 
 	return 0;
 

@@ -13,8 +13,11 @@
 
 Testcase 2 file too big for github. 
 
-(a) [Algorithm implementation]
+(a) [Algorithm implementation] (https://github.com/Pwspang/SC2001-Project/blob/main/Lab%202/code.cpp)
 
+(b) [Generate Graph data] (https://github.com/ifsmirnov/jngen)
+
+(c) [Benchmark] (https://github.com/dtrugman/Benchmark/tree/master)
 
 
 
