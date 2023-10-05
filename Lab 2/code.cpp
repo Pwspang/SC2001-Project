@@ -55,13 +55,17 @@ Helper Functions
 struct Heap{
 	//creating a min head instead of max heap
 	vector<ii> heap;
+	vi pos;
 	int size;
 
 	Heap(vector<ii> & v){
 		size = v.size();
 		heap.resize(size*2);
+		pos.assign(size*2, -1);
 		F(i,0,size) {
 			heap[i] = v[i];
+			//pos should be in order
+			pos[i]=i;
 		}
 		heapifying(0);
 	}
@@ -79,6 +83,8 @@ struct Heap{
 	void fixHeap(int i, ii k){
 		//check if leaf
 		if (2*i+1 > size-1){
+			// set pos 
+			pos[k.se]=i;
 			heap[i] = k;
 		} else {
 			//Check if right child exists
@@ -88,8 +94,12 @@ struct Heap{
 			} 
 
 			if (k.fi < heap[smaller].fi){
+				//set pos
+				pos[k.se]=i;
 				heap[i] = k;
 			} else {
+				//swap pos
+				swap(pos[heap[i].se], pos[heap[smaller].se]);
 				swap(heap[i], heap[smaller]);
 				fixHeap(smaller, k);
 			}
@@ -99,49 +109,58 @@ struct Heap{
 
 	ii extractMin(){
 		swap(heap[0], heap[size-1]);
+		pos[heap[0].se] = 0;
+		pos[heap[size-1].se] = -1;
 		size--;
 		heapifying(0);
 		return heap[size];
 	}
 
-	void fixUp(int pos){
+	void fixUp(int p){
 		//iterative fixUp
-		while (pos != 0){
-			int parent = (pos-1)/2;
-			if (heap[parent].fi < heap[pos].fi) return;
+		while (p != 0){
+			int parent = (p-1)/2;
+			if (heap[parent].fi < heap[p].fi) return;
 			//swap 
-			swap(heap[pos], heap[parent]);
-			pos = parent;
+			swap(heap[p], heap[parent]);
+			swap(pos[heap[p].se], pos[heap[parent].se]);
+			p = parent;
 		}
 
 	}
 
- 
 
-	void insertNode(ii k){
-		heap[size]=k;
-		size++;
-		fixUp(size-1);
-	}
+	void decreaseKey(ii k){
+		//find key in O(1)
+		int index = pos[k.se];
+		heap[index].fi = k.fi;
+		fixUp(index);
+	} 
 
-	void deleteNode(int vertex){
-		//Find Vertex, using O(n) ensure that the node is inside the heap
+	// void insertNode(ii k){
+	// 	heap[size]=k;
+	// 	size++;
+	// 	fixUp(size-1);
+	// }
 
-		int index=-1;
-		F(i,0,size){
-			if (heap[i].se == vertex){
-				index = i;
-				break;
-			}
-		}
-		//Same idea as extractMin 
-		if (index == size-1) size--;
-		else {
-			swap(heap[index], heap[size-1]);
-			size--;
-			heapifying(index);
-		}
-	}
+	// void deleteNode(int vertex){
+	// 	//Find Vertex, using O(n) ensure that the node is inside the heap
+
+	// 	int index=-1;
+	// 	F(i,0,size){
+	// 		if (heap[i].se == vertex){
+	// 			index = i;
+	// 			break;
+	// 		}
+	// 	}
+	// 	//Same idea as extractMin 
+	// 	if (index == size-1) size--;
+	// 	else {
+	// 		swap(heap[index], heap[size-1]);
+	// 		size--;
+	// 		heapifying(index);
+	// 	}
+	// }
 
 	bool empty(){
 		return size==0;
@@ -269,11 +288,40 @@ struct GraphAdj{
 		}
 	}
 
+	// vi djikstra(int source){
+	// 	int u;
+	// 	vi d, pi, s;
+	// 	priority_queue<ii, vector<ii>, greater<ii>> pq;
+	// 	d.assign(size, INF);
+	// 	pi.assign(size, -1);
+	// 	s.assign(size, 0);
+
+	// 	d[source] = 0;
+	// 	pq.push(mp(0, source));
+
+	// 	while (!pq.empty()){
+	// 		ii node = pq.top();
+	// 		pq.pop();
+	// 		if (s[node.se]==1) continue;
+	// 		s[node.se] = 1;
+	// 		for (ii con: adj[node.se]){
+	// 			if (s[con.se] == 0 && d[con.se] > d[node.se] + con.fi){
+	// 				pq.push(mp(d[node.se] + con.fi, con.se));
+	// 				d[con.se] = d[node.se] + con.fi;
+	// 				pi[con.se] = node.se;
+	// 			}
+	// 		}
+			
+	// 	}
+		
+	// 	return d;
+		 	
+	// } 
+
 	vi djikstra(int source){
 		// Time complexity should be O(V + E Log V)
 		int u;
 		vi d, pi, s;
-		// priority_queue<ii, vector<ii>, greater<ii>> pq;
 
 		d.assign(size, INF);
 		pi.assign(size, -1);
@@ -293,10 +341,9 @@ struct GraphAdj{
 			// O(E/V) to loop through the edges
 			for (auto con: adj[node.se]){
 				if (s[con.se] == 0 && (d[con.se] > node.fi + con.fi)){
-					pq.deleteNode(con.se);
 					d[con.se] = node.fi + con.fi;
 					pi[con.se] = node.se;
-					pq.insertNode(mp(d[con.se], con.se));
+					pq.decreaseKey(mp(d[con.se], con.se));
 				}
 			}
 			
@@ -359,7 +406,7 @@ void gm_tc2(){
 void ga_tc1(){
 	ifstream myfile;
 	ofstream outfile;
-	outfile.open("ga_tc1.csv");
+	outfile.open("ga_tc1_heap.csv");
 	myfile.open("testcase1.txt");
 	outfile << "|V|,Time_elapsed(ns)" << endl;
 	FE(i,200,1000){
@@ -376,7 +423,7 @@ void ga_tc2(){
 	ifstream myfile;
 	ofstream outfile;
 	myfile.open("testcase2.txt");
-	outfile.open("ga_tc2.csv");
+	outfile.open("ga_tc2_heap.csv");
 	outfile << "|E|,Time_elapsed(ns)" << endl;
 	FE(i,99,4950){
 		GraphAdj g = GraphAdj(myfile);
@@ -392,10 +439,10 @@ void ga_tc2(){
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
 
-	gm_tc1();
-	//gm_tc2();
-	ga_tc1();
-	//ga_tc2();
+	// gm_tc1();
+	// gm_tc2();
+	// ga_tc1();
+	// ga_tc2();
 
 
 
