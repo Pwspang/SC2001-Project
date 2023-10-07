@@ -52,125 +52,161 @@ Helper Functions
 
 */
 
-struct Heap{
-	//creating a min head instead of max heap
-	vector<ii> heap;
-	vi pos;
-	int size;
+class PriorityQueueMinHeap
+{
+public:
+    // empty constructor
+    PriorityQueueMinHeap(){};
 
-	Heap(vector<ii> & v){
-		size = v.size();
-		heap.resize(size*2);
-		pos.assign(size*2, -1);
-		F(i,0,size) {
-			heap[i] = v[i];
-			//pos should be in order
-			pos[i]=i;
-		}
-		heapifying(0);
-	}
+    // get parent of i node
+    int parent(int i) { return (i - 1) / 2; }
 
-	// Heap Constructors
-	void heapifying(int i){
-		//if not leaf
-		if (2*i+1 <= size-1){
-			heapifying(2*i+1);
-			heapifying(2*i+2);
-			fixHeap(i, heap[i]);
-		}
-	}
+    // get left child of i node
+    int left(int i) { return (2 * i + 1); }
 
-	void fixHeap(int i, ii k){
-		//check if leaf
-		if (2*i+1 > size-1){
-			// set pos 
-			pos[k.se]=i;
-			heap[i] = k;
-		} else {
-			//Check if right child exists
-			int smaller=2*i+1;
-			if (2*i+2 <= size-1) {
-				smaller = heap[2*i+1].fi < heap[2*i+2].fi ? 2*i+1 : 2*i+2; 
-			} 
+    // get right child of i node
+    int right(int i) { return (2 * i + 2); }
 
-			if (k.fi < heap[smaller].fi){
-				//set pos
-				pos[k.se]=i;
-				heap[i] = k;
-			} else {
-				//swap pos
-				swap(pos[heap[i].se], pos[heap[smaller].se]);
-				swap(heap[i], heap[smaller]);
-				fixHeap(smaller, k);
-			}
-			
-		}
-	}
+    // checks if i node is a leaf
+    bool isLeaf(int i) { return 2 * i >= (_heap.size() - 1) && i < _heap.size(); }
 
-	ii extractMin(){
-		swap(heap[0], heap[size-1]);
-		pos[heap[0].se] = 0;
-		pos[heap[size-1].se] = -1;
-		size--;
-		heapifying(0);
-		return heap[size];
-	}
+    // checks if i node has left child
+    bool hasLeft(int i) { return left(i) < _heap.size(); }
 
-	void fixUp(int p){
-		//iterative fixUp
-		while (p != 0){
-			int parent = (p-1)/2;
-			if (heap[parent].fi < heap[p].fi) return;
-			//swap 
-			swap(heap[p], heap[parent]);
-			swap(pos[heap[p].se], pos[heap[parent].se]);
-			p = parent;
-		}
+    // checks if i node has right child
+    bool hasRight(int i) { return right(i) < _heap.size(); }
 
-	}
+	// swap nodes at i and j
+    void swap(int i, int j)
+    {
+        int tmp0 = _heap[i][0],
+            tmp1 = _heap[i][1];
 
+        _heap[i][0] = _heap[j][0];
+        _heap[i][1] = _heap[j][1];
 
-	void decreaseKey(ii k){
-		//find key in O(1)
-		int index = pos[k.se];
-		heap[index].fi = k.fi;
-		fixUp(index);
-	} 
+        _heap[j][0] = tmp0;
+        _heap[j][1] = tmp1;
+    }
 
-	// void insertNode(ii k){
-	// 	heap[size]=k;
-	// 	size++;
-	// 	fixUp(size-1);
-	// }
+    // sorts itself upwards from i
+    void heapifyUp(int i)
+    {
+        // checks up parent distance is greater than current index
+        while (i != 0 && _heap[parent(i)][1] > _heap[i][1])
+        {
+            // if so, swap and change current index to its parent since its shifted
+            swap(i, parent(i));
+            i = parent(i);
+        }
+    }
 
-	// void deleteNode(int vertex){
-	// 	//Find Vertex, using O(n) ensure that the node is inside the heap
+    // sorts itself downwards from i
+    void heapifyDown(int i)
+    {
+        // keep swapping if node has children
+        while (hasLeft(i))
+        {
+            int smallestChildIndex = -1;
+            // if has children, it WILL have a left child
+            if (hasLeft(i))
+            {
+                int leftChild = left(i);
+                // it may not have a right child
+                if (hasRight(i))
+                {
+                    int rightChild = right(i);
+                    // get the smaller of the left and right children
+                    smallestChildIndex = (_heap[leftChild][1] <= _heap[rightChild][1]) ? leftChild : rightChild;
+                }
+                // no right child
+                else
+                    smallestChildIndex = leftChild;
+            }
+            // no children at all
+            else
+                break;
+            if (_heap[i][1] > _heap[smallestChildIndex][1])
+            {
+                swap(i, smallestChildIndex);
+                i = smallestChildIndex;
+            }
+            // when the smallest child less or equals to i
+            else
+                break;
+        }
+    }
 
-	// 	int index=-1;
-	// 	F(i,0,size){
-	// 		if (heap[i].se == vertex){
-	// 			index = i;
-	// 			break;
-	// 		}
-	// 	}
-	// 	//Same idea as extractMin 
-	// 	if (index == size-1) size--;
-	// 	else {
-	// 		swap(heap[index], heap[size-1]);
-	// 		size--;
-	// 		heapifying(index);
-	// 	}
-	// }
+    // adds vertex and its distance from source into the priority queue
+    void add(int vertex, int distance)
+    {
+        // inserts vertex, distance pair into heap
+        int *tmp = new int[2]{vertex, distance};
+        _heap.push_back(tmp);
 
-	bool empty(){
-		return size==0;
-	}
+        // sorts itself upwards
+        heapifyUp(_heap.size() - 1);
+    }
 
-	void print_heap(){
-		F(i,0,size) cout << heap[i] << " ";
-		cout << endl;
-	}
+    // changes the distance of vertex from the source
+    void edit(int vertex, int newDistance)
+    {
+        // loop through the queue to find the vertex and update the distance
+        for (int i = 0; i < _heap.size(); i++)
+        {
+            if (_heap[i][0] == vertex)
+            {
+                int oldDistance = _heap[i][1];
+                _heap[i][1] = newDistance;
 
+                // if new distance if somehow larger than old distance,
+                // no choice but to sort itself downwards
+                if (newDistance > oldDistance)
+                    heapifyDown(i);
+                else
+                    heapifyUp(i);
+                break;
+            }
+        }
+    }
+
+    // returns [vertex, distance] of the shortest distance pair
+    int *pop()
+    {
+        if (_heap.size() == 0)
+            return NULL;
+
+        int *smallest = new int[2]{_heap[0][0], _heap[0][1]};
+        _heap.erase(_heap.begin());
+        // edge case if size = 0 after erasing
+        if (_heap.size() > 1)
+        {
+            swap(0, _heap.size() - 1);
+            heapifyDown(0);
+        }
+        return smallest;
+    }
+
+	// returns whether heap is empty
+    bool isEmpty()
+    {
+        return _heap.size() == 0;
+    }
+
+    // super useful for debugging heapify, prints heap
+    void printHeap()
+    {
+        for (int i = 0; i < _heap.size(); i++)
+        {
+            int *tmp = _heap[i];
+            cout << "(" << tmp[0] << "," << tmp[1] << ") ";
+        }
+        cout << endl;
+    }
+
+protected:
+	// heap stores as vector instead of a tree structure
+    vector<int *> _heap;
 };
 
 
@@ -288,38 +324,8 @@ struct GraphAdj{
 		}
 	}
 
-	// vi djikstra(int source){
-	// 	int u;
-	// 	vi d, pi, s;
-	// 	priority_queue<ii, vector<ii>, greater<ii>> pq;
-	// 	d.assign(size, INF);
-	// 	pi.assign(size, -1);
-	// 	s.assign(size, 0);
-
-	// 	d[source] = 0;
-	// 	pq.push(mp(0, source));
-
-	// 	while (!pq.empty()){
-	// 		ii node = pq.top();
-	// 		pq.pop();
-	// 		if (s[node.se]==1) continue;
-	// 		s[node.se] = 1;
-	// 		for (ii con: adj[node.se]){
-	// 			if (s[con.se] == 0 && d[con.se] > d[node.se] + con.fi){
-	// 				pq.push(mp(d[node.se] + con.fi, con.se));
-	// 				d[con.se] = d[node.se] + con.fi;
-	// 				pi[con.se] = node.se;
-	// 			}
-	// 		}
-			
-	// 	}
-		
-	// 	return d;
-		 	
-	// } 
-
 	vi djikstra(int source){
-		// Time complexity should be O(V + E Log V)
+		// Time complexity should be O(( V + E )Log V)
 		int u;
 		vi d, pi, s;
 
@@ -328,22 +334,20 @@ struct GraphAdj{
 		s.assign(size, 0);
 
 		d[source] = 0;
-		//pq.push(mp(0, source));
-		// Creating initial Heap
-		vector<ii> tmp;
-		F(i,0,size) tmp.pb(mp(d[i], i));
-		Heap pq = Heap(tmp);
+		PriorityQueueMinHeap pq= PriorityQueueMinHeap();
+		F(i,0,size) pq.add(i, d[i]);
 
 		// Outer Loop O(V)
-		while (!pq.empty()){
-			ii node = pq.extractMin();
+		while (!pq.isEmpty()){
+			int * arr = pq.pop();
+			ii node = mp(arr[1], arr[0]);
 			s[node.se] = 1;
 			// O(E/V) to loop through the edges
 			for (auto con: adj[node.se]){
 				if (s[con.se] == 0 && (d[con.se] > node.fi + con.fi)){
 					d[con.se] = node.fi + con.fi;
 					pi[con.se] = node.se;
-					pq.decreaseKey(mp(d[con.se], con.se));
+					pq.edit(con.se, d[con.se]);
 				}
 			}
 			
@@ -436,6 +440,7 @@ void ga_tc2(){
 }
 
 
+
 int32_t main(){
 	ios_base::sync_with_stdio(false), cin.tie(nullptr);
 
@@ -444,9 +449,6 @@ int32_t main(){
 	// ga_tc1();
 	// ga_tc2();
 
-
-
-		
 	return 0;
 
 }
