@@ -439,6 +439,31 @@ void ga_tc2(){
 
 }
 
+void tc3(string filename){
+	ifstream myfile;
+	ofstream outfile;
+	vector<ull> v(501);
+	
+	myfile.open(filename);
+	FE(i,100,500){
+		GraphMatrix g = GraphMatrix(myfile);
+		auto result = Bench::mark(mem_fn(&GraphMatrix::djikstra), &g, 0);
+		v[i] = result.fi.as_nanoseconds();
+	}
+	myfile.close();
+	myfile.open(filename);
+	outfile.open("ga_tc3(1.0).csv");
+	outfile << "|E|,Time_elapsed_GM(ns),Time_elapsed_GA(ns)" << endl;
+	FE(i,100,500){
+		GraphAdj g = GraphAdj(myfile);
+		auto result = Bench::mark(mem_fn(&GraphAdj::djikstra), &g, 0);
+		outfile << i << "," << v[i] << "," << result.fi.as_nanoseconds() << endl;
+	}
+	myfile.close();
+	outfile.close();
+
+}
+
 
 
 int32_t main(){
@@ -448,6 +473,7 @@ int32_t main(){
 	// gm_tc2();
 	// ga_tc1();
 	// ga_tc2();
+	tc3("testcase3(1.0).txt");
 
 	return 0;
 
