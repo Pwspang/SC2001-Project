@@ -257,10 +257,9 @@ struct GraphMatrix{
 	// To analyse time complexity, check V against time taken (Vary E to show that the number of edges of graph is not a factor)
 
 	vi djikstra(int source){
-		// Time complexity should be O(2|V|^2) -> O(|V|^2)
-		// Time complexity for best case/average case/worst case should be the same
 		ii u;
 		vi d, pi, s;
+		// 
 		d.assign(size, INF);
 		pi.assign(size, -1);
 		s.assign(size, 0);
@@ -268,7 +267,6 @@ struct GraphMatrix{
 		d[source] = 0;
 
 		//min Queue using Array/Vector
-		//Could also use vector d and s only, but follow project definition
 		vector<ii> pq;
 		F(i,0,size) pq.pb(mp(d[i], i));
 
@@ -276,7 +274,7 @@ struct GraphMatrix{
 		while (u=smallest_node(pq, s), u.se != -1){
 			// O(|V|) to find the smallest node
 			s[u.se] = 1;
-			//O(|V|) to loop through matrix to find connected vertices
+			// O(|V|) to loop through matrix to find connected vertices
 			F(i,0,size){
 				if (matrix[u.se][i] != 0 && s[i] == 0 && (matrix[u.se][i] + u.fi) < d[i]){
 					// updating pq vector O(1) update
@@ -339,14 +337,16 @@ struct GraphAdj{
 
 		// Outer Loop O(V)
 		while (!pq.isEmpty()){
+			// Extract Min O(Log(V))
 			int * arr = pq.pop();
 			ii node = mp(arr[1], arr[0]);
 			s[node.se] = 1;
-			// O(E/V) to loop through the edges
+			// O(E) to loop through edges
 			for (auto con: adj[node.se]){
 				if (s[con.se] == 0 && (d[con.se] > node.fi + con.fi)){
 					d[con.se] = node.fi + con.fi;
 					pi[con.se] = node.se;
+					// O(log(V)) to decrease key
 					pq.edit(con.se, d[con.se]);
 				}
 			}
