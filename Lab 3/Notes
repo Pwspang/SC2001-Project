@@ -1,0 +1,40 @@
+1) Recursive definition of function P(C)
+
+Recursive Formula
+P(C) = 0											if n < min(weights)
+P(C) = max(P(C-w1)+p1, P(C-w2)+p2 ...., P(C-wn)+pn) if n < wi 
+[Change to summation eqn in slides] 
+
+Assumption: Wi != 0, if not it will cause inf loop
+
+*To talk about the principle of optimality 
+Definition: There are optimal solutions for the subproblems
+
+*To do: Prove by contradiction for principle of optimality
+
+2) Draw subproblem graph for P(14) where n is 3 with the weights and profits
+
+|---|---|---|---|
+|   | 0 | 1 | 2 |
+| w | 4 | 6 | 8 |
+| p | 7 | 6 | 9 |
+
+3) Dynamic Programming algorithm to compute the max profit, given a knapsack of capacity C, n types of objects with weight w, profit p using the bottom up approach. 
+
+
+Time Complexity	: O(nC)
+Space Complexity: O(C)
+
+4) Code 
+a. P(14)
+|---|---|---|---|
+|   | 0 | 1 | 2 |
+| w | 4 | 6 | 8 |
+| p | 7 | 6 | 9 |
+
+b. P(14)
+|---|---|---|---|
+|   | 0 | 1 | 2 |
+| w | 5 | 6 | 8 |
+| p | 7 | 6 | 9 |
+
