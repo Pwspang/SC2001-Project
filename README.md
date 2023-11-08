@@ -28,3 +28,5 @@ Goal: How algorithm run time complexity changes wrt |E|.
 
 
 ## Lab 3 
+
+(a) [Algorithm implmentation](https://github.com/Pwspang/SC2001-Project/blob/main/Lab%203/code.cpp)
